@@ -1,0 +1,71 @@
+{
+  "name": "node-csfd-api",
+  "version": "5.8.0",
+  "description": "ČSFD API in JavaScript. Amazing NPM library for scrapping csfd.cz :)",
+  "author": "BART! <bart@bartweb.cz>",
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.28.0",
+    "dotenv": "^17.3.1",
+    "express": "^5.2.1",
+    "node-html-parser": "^7.1.0",
+    "zod": "^4.3.6"
+  },
+  "repository": {
+    "url": "git+https://github.com/bartholomej/node-csfd-api.git",
+    "type": "git"
+  },
+  "bugs": {
+    "url": "https://github.com/bartholomej/node-csfd-api/issues"
+  },
+  "homepage": "https://github.com/bartholomej/node-csfd-api#readme",
+  "keywords": [
+    "csfd",
+    "čsfd",
+    "ratings",
+    "movies",
+    "films",
+    "nodejs",
+    "node",
+    "typescript",
+    "scraper",
+    "parser",
+    "api",
+    "mcp",
+    "ai",
+    "docker",
+    "server",
+    "cli",
+    "claude",
+    "letterboxd"
+  ],
+  "engines": {
+    "node": ">= 20"
+  },
+  "license": "MIT",
+  "type": "module",
+  "main": "./index.cjs",
+  "module": "./index.js",
+  "types": "./index.d.ts",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./index.d.ts",
+        "default": "./index.js"
+      },
+      "require": {
+        "types": "./index.d.cts",
+        "default": "./index.cjs"
+      }
+    },
+    "./package.json": "./package.json"
+  },
+  "bin": {
+    "csfd": "cli.js",
+    "node-csfd-api": "cli.js"
+  },
+  "sideEffects": false
+}

@@ -1,0 +1,130 @@
+{
+  "name": "node-csfd-api",
+  "version": "5.8.0",
+  "description": "ČSFD API in JavaScript. Amazing NPM library for scrapping csfd.cz :)",
+  "author": "BART! <bart@bartweb.cz>",
+  "scripts": {
+    "dev": "tsc -w",
+    "start": "yarn dev",
+    "server": "tsx server/index.ts",
+    "mcp": "tsx mcp-server/index.ts",
+    "prebuild": "rimraf dist",
+    "build": "tsdown --config-loader unconfig",
+    "tsc": "tsc",
+    "demo": "tsx demo",
+    "example:cjs:ts": "cd examples/server/cjs && yarn build:ts",
+    "example:esm:ts": "cd examples/server/esm && yarn build:ts",
+    "example:cjs:js": "cd examples/server/cjs && yarn build",
+    "example:esm:js": "cd examples/server/esm && yarn build",
+    "letterboxd": "tsx examples/letterboxd/letterboxd-export.ts",
+    "examples": "yarn example:cjs:ts && yarn example:cjs:js && yarn example:esm:ts && yarn example:esm:js",
+    "lint": "eslint ./src/**/**/* --fix",
+    "docs": "typedoc",
+    "test": "vitest --watch=false",
+    "mock": "tsx tests/update-mocks.ts",
+    "test:coverage": "yarn test --coverage",
+    "publish:next": "yarn && yarn build && yarn test:coverage && cd dist && npm publish --tag next",
+    "postversion": "git push && git push --follow-tags",
+    "release:beta": "npm version preminor --preid=beta -m \"chore(update): prelease %s β\"",
+    "prerelease:beta": "npm version prerelease --preid=beta -m \"chore(update): prelease %s β\"",
+    "release:patch": "git checkout master && npm version patch -m \"chore(update): patch release %s 🐛\"",
+    "release:minor": "git checkout master && npm version minor -m \"chore(update): release %s 🚀\"",
+    "release:major": "git checkout master && npm version major -m \"chore(update): major release %s 💥\"",
+    "prepare": "husky"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.28.0",
+    "dotenv": "^17.3.1",
+    "express": "^5.2.1",
+    "node-html-parser": "^7.1.0",
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "@babel/preset-typescript": "^7.28.5",
+    "@eslint/eslintrc": "^3.3.5",
+    "@eslint/js": "^10.0.1",
+    "@types/express": "^5.0.6",
+    "@types/node": "^25.5.0",
+    "@typescript-eslint/eslint-plugin": "^8.57.2",
+    "@typescript-eslint/parser": "^8.57.2",
+    "@vitest/coverage-istanbul": "^4.1.2",
+    "@vitest/ui": "^4.1.2",
+    "eslint": "^10.1.0",
+    "eslint-config-google": "^0.14.0",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-prettier": "^5.5.5",
+    "globals": "^17.4.0",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.4.0",
+    "prettier": "^3.8.1",
+    "rimraf": "^6.1.3",
+    "rolldown-plugin-dist-package": "^1.0.0",
+    "tsdown": "^0.21.7",
+    "tsx": "^4.21.0",
+    "typedoc": "^0.28.18",
+    "typescript": "^6.0.2",
+    "vitest": "^4.1.2"
+  },
+  "repository": {
+    "url": "git+https://github.com/bartholomej/node-csfd-api.git",
+    "type": "git"
+  },
+  "bugs": {
+    "url": "https://github.com/bartholomej/node-csfd-api/issues"
+  },
+  "homepage": "https://github.com/bartholomej/node-csfd-api#readme",
+  "keywords": [
+    "csfd",
+    "čsfd",
+    "ratings",
+    "movies",
+    "films",
+    "nodejs",
+    "node",
+    "typescript",
+    "scraper",
+    "parser",
+    "api",
+    "mcp",
+    "ai",
+    "docker",
+    "server",
+    "cli",
+    "claude",
+    "letterboxd"
+  ],
+  "engines": {
+    "node": ">= 20"
+  },
+  "license": "MIT",
+  "lint-staged": {
+    "*.ts": "eslint --cache --fix"
+  },
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      }
+    },
+    "./package.json": "./package.json"
+  },
+  "bin": {
+    "csfd": "./dist/cli.js",
+    "node-csfd-api": "./dist/cli.js"
+  },
+  "sideEffects": false,
+  "packageManager": "yarn@4.12.0"
+}

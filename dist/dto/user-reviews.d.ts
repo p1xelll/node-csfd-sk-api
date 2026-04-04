@@ -1,0 +1,35 @@
+import { CSFDFilmTypes, CSFDScreening, CSFDStars } from "./global.js";
+
+//#region src/dto/user-reviews.d.ts
+interface CSFDUserReviews extends CSFDScreening {
+  userRating: CSFDStars;
+  userDate: string | null;
+  text: string;
+  poster: string;
+}
+interface CSFDUserReviewsConfig {
+  includesOnly?: CSFDFilmTypes[];
+  excludes?: CSFDFilmTypes[];
+  /**
+   * Fetch all reviews. (Warning: Use it wisely. Can be detected and banned. Consider using it together with `allPagesDelay` attribute)
+   */
+  allPages?: boolean;
+  /**
+   * Delay on each page request. In milliseconds
+   */
+  allPagesDelay?: number;
+  /**
+   * Specific page number to fetch (e.g., 2 for second page)
+   */
+  page?: number;
+  /**
+   * Called on each page fetch when `allPages` is enabled.
+   * Useful for rendering progress in CLI tools or custom logging.
+   * @param page - Current page number
+   * @param total - Total number of pages
+   */
+  onProgress?: (page: number, total: number) => void;
+}
+//#endregion
+export { CSFDUserReviews, CSFDUserReviewsConfig };
+//# sourceMappingURL=user-reviews.d.ts.map

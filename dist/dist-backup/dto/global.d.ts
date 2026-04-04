@@ -1,0 +1,26 @@
+//#region src/dto/global.d.ts
+interface CSFDScreening {
+  id: number;
+  title: string;
+  year: number;
+  url: string;
+  type: CSFDFilmTypes;
+  /**
+   * Overall aggregated rating. (On the web usually represented by colors).
+   *
+   * 'unknown': unknown (gray color)
+   *
+   * 'good': 70% – 100 % (red color)
+   *
+   * 'average': 30% - 69% (blue color)
+   *
+   * 'bad': 0% - 29% (black color)
+   */
+  colorRating: CSFDColorRating;
+}
+type CSFDColorRating = 'bad' | 'average' | 'good' | 'unknown';
+type CSFDStars = 0 | 1 | 2 | 3 | 4 | 5;
+type CSFDFilmTypes = 'film' | 'tv-film' | 'tv-show' | 'series' | 'theatrical' | 'concert' | 'season' | 'student-film' | 'amateur-film' | 'music-video' | 'episode' | 'video-compilation';
+//#endregion
+export { CSFDColorRating, CSFDFilmTypes, CSFDScreening, CSFDStars };
+//# sourceMappingURL=global.d.ts.map

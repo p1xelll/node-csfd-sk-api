@@ -40,55 +40,84 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
+          # Get current branch name
+          SOURCE_BRANCH="${GITHUB_REF_NAME}"
+          echo "Source branch: $SOURCE_BRANCH"
+
+          # Backup dist/ temporarily (it's not in git, created by build)
+          if [ -d "dist" ]; then
+            cp -r dist /tmp/dist-backup
+            echo "✅ Backed up dist/"
+          else
+            echo "❌ dist/ not found after build"
+            exit 1
+          fi
+
           # Fetch all branches
           git fetch origin
 
           # Check if build branch exists
           if git show-ref --verify --quiet refs/remotes/origin/build; then
+            echo "✅ Build branch exists, checking out"
             git checkout build
-            # Reset to master to get latest files (except dist)
-            git checkout master -- .gitignore
-            # Remove /dist from gitignore temporarily
-            sed -i '/^\/dist$/d' .gitignore
-          else
-            # Create orphan branch
-            git checkout --orphan build
+
+            # Reset to source branch (except dist/)
+            git checkout "$SOURCE_BRANCH" -- .gitignore package.json README.md LICENSE
+
             # Remove /dist from gitignore
             sed -i '/^\/dist$/d' .gitignore
-            # Remove all files except dist
-            git rm -rf .
-            git checkout master -- dist/
-            git checkout master -- package.json
-            git checkout master -- README.md
-            git checkout master -- LICENSE
+
+            # Restore dist/ from backup
+            rm -rf dist
+            cp -r /tmp/dist-backup dist
+          else
+            echo "✅ Creating new orphan build branch"
+            git checkout --orphan build
+
+            # Remove /dist from gitignore
+            sed -i '/^\/dist$/d' .gitignore
+
+            # Remove all files (clean slate)
+            git rm -rf . 2>/dev/null || true
+
+            # Checkout basic files from source branch
+            git checkout "$SOURCE_BRANCH" -- package.json README.md LICENSE .gitignore
+
+            # Add dist/ from backup
+            cp -r /tmp/dist-backup dist
           fi
 
-      - name: 📋 Copy dist to build branch
+      - name: 📋 Stage files
         run: |
-          # Ensure dist is present
+          # Verify dist/ exists
           if [ ! -d "dist" ]; then
-            echo "❌ dist/ directory not found after build"
+            echo "❌ dist/ directory not found"
             exit 1
           fi
 
-          # Add dist files
+          # Stage files
           git add dist/ -f
           git add package.json
           git add README.md
           git add LICENSE
           git add .gitignore
 
+          echo "✅ Files staged"
+
       - name: 💾 Commit and push
         run: |
-          # Check if there are changes to commit
+          SOURCE_BRANCH="${GITHUB_REF_NAME}"
+
+          # Check for changes
           if git diff --staged --quiet; then
-            echo "✅ No changes in dist/, skipping commit"
+            echo "✅ No changes to commit"
             exit 0
           fi
 
-          git commit -m "chore(build): update dist/ from master@$(git rev-parse --short master) [skip ci]"
+          # Commit
+          git commit -m "chore(build): update dist/ from ${SOURCE_BRANCH}@$(git rev-parse --short HEAD) [skip ci]"
 
-          # Force push to build branch (clean history)
+          # Force push (clean history)
           git push origin build --force
 
           echo "✅ Successfully pushed dist/ to build branch"

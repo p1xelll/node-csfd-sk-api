@@ -16,7 +16,7 @@ import {
   getUserReviewYear
 } from '../helpers/user-reviews.helper';
 import { CSFDOptions } from '../types';
-import { LIB_PREFIX, userReviewsUrl } from '../vars';
+import { getBaseUrl, LIB_PREFIX, userReviewsUrl } from '../vars';
 
 export class UserReviewsScraper {
   public async userReviews(
@@ -27,7 +27,8 @@ export class UserReviewsScraper {
     let allReviews: CSFDUserReviews[] = [];
     const pageToFetch = config?.page || 1;
     const url = userReviewsUrl(user, pageToFetch > 1 ? pageToFetch : undefined, {
-      language: options?.language
+      language: options?.language,
+      domain: options?.domain
     });
     const response = await fetchPage(url, { ...options?.request });
     const items = parse(response);
@@ -37,17 +38,22 @@ export class UserReviewsScraper {
     const pagesNode = items.querySelector('.pagination');
     const pages = +pagesNode?.childNodes[pagesNode.childNodes.length - 4].rawText || 1;
 
-    allReviews = this.getPage(config, reviews);
+    const baseUrl = getBaseUrl(options?.domain, options?.language);
+
+    allReviews = this.getPage(config, reviews, baseUrl);
 
     if (config?.allPages) {
       for (let i = 2; i <= pages; i++) {
         config.onProgress?.(i, pages);
-        const url = userReviewsUrl(user, i, { language: options?.language });
+        const url = userReviewsUrl(user, i, {
+          language: options?.language,
+          domain: options?.domain
+        });
         const response = await fetchPage(url, { ...options?.request });
 
         const items = parse(response);
         const reviews = items.querySelectorAll('.user-tab-reviews .article');
-        allReviews = [...allReviews, ...this.getPage(config, reviews)];
+        allReviews = [...allReviews, ...this.getPage(config, reviews, baseUrl)];
 
         // Sleep
         if (config.allPagesDelay) {
@@ -60,11 +66,14 @@ export class UserReviewsScraper {
     return allReviews;
   }
 
-  private getPage(config: CSFDUserReviewsConfig, reviews: HTMLElement[]) {
+  private getPage(config: CSFDUserReviewsConfig, reviews: HTMLElement[], baseUrl: string) {
     const films: CSFDUserReviews[] = [];
     if (config) {
       if (config.includesOnly?.length && config.excludes?.length) {
-        console.warn(`${LIB_PREFIX} Both 'includesOnly' and 'excludes' were provided. 'includesOnly' takes precedence:`, config.includesOnly);
+        console.warn(
+          `${LIB_PREFIX} Both 'includesOnly' and 'excludes' were provided. 'includesOnly' takes precedence:`,
+          config.includesOnly
+        );
       }
     }
 
@@ -77,28 +86,28 @@ export class UserReviewsScraper {
       // Filtering includesOnly
       if (includesSet) {
         if (includesSet.has(type)) {
-          films.push(this.buildUserReviews(el, type));
+          films.push(this.buildUserReviews(el, type, baseUrl));
         }
         // Filter excludes
       } else if (excludesSet) {
         if (!excludesSet.has(type)) {
-          films.push(this.buildUserReviews(el, type));
+          films.push(this.buildUserReviews(el, type, baseUrl));
         }
       } else {
         // Without filtering
-        films.push(this.buildUserReviews(el, type));
+        films.push(this.buildUserReviews(el, type, baseUrl));
       }
     }
     return films;
   }
 
-  private buildUserReviews(el: HTMLElement, type: CSFDFilmTypes): CSFDUserReviews {
+  private buildUserReviews(el: HTMLElement, type: CSFDFilmTypes, baseUrl: string): CSFDUserReviews {
     return {
       id: getUserReviewId(el),
       title: getUserReviewTitle(el),
       year: getUserReviewYear(el),
       type,
-      url: getUserReviewUrl(el),
+      url: getUserReviewUrl(el, baseUrl),
       colorRating: getUserReviewColorRating(el) as CSFDColorRating,
       userDate: getUserReviewDate(el),
       userRating: getUserReviewRating(el) as CSFDStars,

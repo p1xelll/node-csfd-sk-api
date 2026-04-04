@@ -146,8 +146,9 @@ describe('Get Movie origins', () => {
 });
 
 describe('Get Movie creators', () => {
+  const baseUrl = 'https://www.csfd.cz';
   test('First movie directors', () => {
-    const movie = parseSearchPeople(moviesNode[0], 'directors');
+    const movie = parseSearchPeople(moviesNode[0], 'directors', baseUrl);
     expect(movie).toEqual<CSFDMovieCreator[]>([
       {
         id: 3112,
@@ -162,7 +163,7 @@ describe('Get Movie creators', () => {
     ]);
   });
   test('Last movie actors', () => {
-    const movie = parseSearchPeople(moviesNode[moviesNode.length - 1], 'actors');
+    const movie = parseSearchPeople(moviesNode[moviesNode.length - 1], 'actors', baseUrl);
     expect(movie).toEqual<CSFDMovieCreator[]>([
       {
         id: 101,
@@ -294,8 +295,9 @@ describe('Get TV series origins', () => {
 });
 
 describe('Get TV series creators', () => {
+  const baseUrl = 'https://www.csfd.cz';
   test('First TV series directors', () => {
-    const movie = parseSearchPeople(tvSeriesNode[0], 'directors');
+    const movie = parseSearchPeople(tvSeriesNode[0], 'directors', baseUrl);
     expect(movie.length).toBeGreaterThan(0);
     expect(movie[0].id).toBeGreaterThan(0);
     expect(movie[0].name.length).toBeGreaterThan(0);
@@ -303,7 +305,7 @@ describe('Get TV series creators', () => {
     expect(movie[0].url).toContain('https://www.csfd.cz/tvurce/');
   });
   test('Last TV series actors', () => {
-    const movie = parseSearchPeople(tvSeriesNode[tvSeriesNode.length - 1], 'actors');
+    const movie = parseSearchPeople(tvSeriesNode[tvSeriesNode.length - 1], 'actors', baseUrl);
     expect(movie.length).toBeGreaterThan(0);
     expect(movie[0].id).toBeGreaterThan(0);
     expect(movie[0].name.length).toBeGreaterThan(0);
@@ -311,7 +313,7 @@ describe('Get TV series creators', () => {
     expect(movie[0].url).toContain('https://www.csfd.cz/tvurce/');
   });
   test('Empty directors check', () => {
-    const movie = parseSearchPeople(parse('<div></div>') as any, 'directors');
+    const movie = parseSearchPeople(parse('<div></div>') as any, 'directors', baseUrl);
     expect(movie).toEqual<CSFDMovieCreator[]>([]);
   });
   // test('Empty directors + some actors', () => {

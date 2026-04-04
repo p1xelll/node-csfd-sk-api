@@ -14,12 +14,12 @@ import {
   getSearchYear,
   parseSearchPeople
 } from '../helpers/search.helper';
-import { CSFDLanguage, CSFDOptions } from '../types';
-import { getUrlByLanguage, searchUrl } from '../vars';
+import { CSFDOptions } from '../types';
+import { getBaseUrl, searchUrl } from '../vars';
 
 export class SearchScraper {
   public async search(text: string, options?: CSFDOptions): Promise<CSFDSearch> {
-    const url = searchUrl(text, { language: options?.language });
+    const url = searchUrl(text, { language: options?.language, domain: options?.domain });
     const response = await fetchPage(url, { ...options?.request });
 
     const html = parse(response);
@@ -28,7 +28,7 @@ export class SearchScraper {
     const tvSeriesNode = html.querySelectorAll('.main-series article');
     const creatorsNode = html.querySelectorAll('.main-authors article');
 
-    return this.parseSearch(moviesNode, usersNode, tvSeriesNode, creatorsNode, options?.language);
+    return this.parseSearch(moviesNode, usersNode, tvSeriesNode, creatorsNode, options);
   }
 
   private parseSearch(
@@ -36,9 +36,9 @@ export class SearchScraper {
     usersNode: HTMLElement[],
     tvSeriesNode: HTMLElement[],
     creatorsNode: HTMLElement[],
-    language?: CSFDLanguage
+    options?: CSFDOptions
   ) {
-    const baseUrl = getUrlByLanguage(language);
+    const baseUrl = getBaseUrl(options?.domain, options?.language);
 
     const movies: CSFDSearchMovie[] = [];
     const users: CSFDSearchUser[] = [];
@@ -57,8 +57,8 @@ export class SearchScraper {
         poster: getSearchPoster(m),
         origins: getSearchOrigins(m),
         creators: {
-          directors: parseSearchPeople(m, 'directors'),
-          actors: parseSearchPeople(m, 'actors')
+          directors: parseSearchPeople(m, 'directors', baseUrl),
+          actors: parseSearchPeople(m, 'actors', baseUrl)
         }
       };
     };

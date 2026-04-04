@@ -17,17 +17,22 @@ export class CreatorScraper {
     if (isNaN(id)) {
       throw new Error('node-csfd-api: creatorId must be a valid number');
     }
-    const url = creatorUrl(id, { language: options?.language });
+    const url = creatorUrl(id, { language: options?.language, domain: options?.domain });
     const response = await fetchPage(url, { ...options?.request });
 
     const creatorHtml = parse(response);
 
     const asideNode = creatorHtml.querySelector('.creator-about');
     const filmsNode = creatorHtml.querySelector('.creator-filmography');
-    return this.buildCreator(+creatorId, asideNode, filmsNode);
+    return this.buildCreator(+creatorId, asideNode, filmsNode, options);
   }
 
-  private buildCreator(id: number, asideEl: HTMLElement, filmsNode: HTMLElement): CSFDCreator {
+  private buildCreator(
+    id: number,
+    asideEl: HTMLElement,
+    filmsNode: HTMLElement,
+    options?: CSFDOptions
+  ): CSFDCreator {
     const birthdayInfo = getCreatorBirthdayInfo(asideEl);
     return {
       id,
@@ -37,7 +42,7 @@ export class CreatorScraper {
       photo: getCreatorPhoto(asideEl),
       age: birthdayInfo?.age || null,
       bio: getCreatorBio(asideEl),
-      films: getCreatorFilms(filmsNode)
+      films: getCreatorFilms(filmsNode, options)
     };
   }
 }

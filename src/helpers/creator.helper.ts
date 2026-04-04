@@ -2,6 +2,8 @@ import { HTMLElement } from 'node-html-parser';
 import { CSFDCreatorScreening } from '../dto/creator';
 import { CSFDColorRating } from '../dto/global';
 import { CSFDColors } from '../dto/user-ratings';
+import { CSFDOptions } from '../types';
+import { getBaseUrl } from '../vars';
 import { addProtocol, parseColor, parseDate, parseIdFromUrl } from './global.helper';
 
 const getCreatorColorRating = (el: HTMLElement | null): CSFDColorRating => {
@@ -60,13 +62,19 @@ const parseAge = (text: string): number | null => {
 
 const parseBirthPlace = (text: string): string => text.trim().replace(/<br>/g, '').trim();
 
-export const getCreatorFilms = (el: HTMLElement | null): CSFDCreatorScreening[] => {
+export const getCreatorFilms = (
+  el: HTMLElement | null,
+  options?: CSFDOptions
+): CSFDCreatorScreening[] => {
   // Optimization: Use querySelector instead of querySelectorAll(...)[0]
   const filmNodes = el?.querySelector('.updated-box')?.querySelectorAll('table tr') ?? [];
   let yearCache: number | null = null;
 
+  const baseUrl = getBaseUrl(options?.domain, options?.language);
+
   const films = filmNodes.map((filmNode) => {
-    const id = getCreatorId(filmNode.querySelector('td.name .film-title-name')?.attributes?.href);
+    const href = filmNode.querySelector('td.name .film-title-name')?.attributes?.href;
+    const id = getCreatorId(href);
     const title = filmNode.querySelector('.name')?.text?.trim();
     const yearText = filmNode.querySelector('.year')?.text?.trim();
     const year = yearText ? +yearText : null;
@@ -79,7 +87,13 @@ export const getCreatorFilms = (el: HTMLElement | null): CSFDCreatorScreening[] 
 
     const finalYear = year ?? yearCache;
     if (id != null && title && finalYear != null) {
-      return { id, title, year: finalYear, colorRating };
+      return {
+        id,
+        title,
+        year: finalYear,
+        colorRating,
+        url: href ? (href.startsWith('/') ? `${baseUrl}${href}` : href) : null
+      };
     }
     return null;
   });

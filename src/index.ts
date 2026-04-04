@@ -27,12 +27,15 @@ export class Csfd {
     this.defaultOptions = defaultOptions;
   }
 
-  public setOptions({ request, language }: CSFDOptions): void {
+  public setOptions({ request, language, domain }: CSFDOptions): void {
     if (request !== undefined) {
       this.defaultOptions = { ...this.defaultOptions, request };
     }
     if (language !== undefined) {
       this.defaultOptions = { ...this.defaultOptions, language };
+    }
+    if (domain !== undefined) {
+      this.defaultOptions = { ...this.defaultOptions, domain };
     }
   }
 
@@ -96,4 +99,3 @@ export const csfd = new Csfd(
 );
 
 export type * from './dto';
-

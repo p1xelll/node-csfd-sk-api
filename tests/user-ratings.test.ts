@@ -236,12 +236,13 @@ describe('Get date', () => {
 });
 
 describe('Get Url', () => {
+  const baseUrl = 'https://www.csfd.cz';
   test('First url', () => {
-    const movie = getUserRatingUrl(movies[0]);
+    const movie = getUserRatingUrl(movies[0], baseUrl);
     expect(movie).toContain('https://www.csfd.cz/film/' + String(movies[0].id));
   });
   test('Last url', () => {
-    const movie = getUserRatingUrl(movies[movies.length - 1]);
+    const movie = getUserRatingUrl(movies[movies.length - 1], baseUrl);
     expect(movie).toContain('https://www.csfd.cz/film/' + String(movies[movies.length - 1].id));
   });
 });

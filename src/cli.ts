@@ -146,25 +146,29 @@ async function main() {
         .join(' ');
       if (!input) {
         console.error(err('Please provide a movie ID or title.'));
-        console.log(c.dim(`  Usage: ${getCommandName()} movie <id|title> [--json]`));
+        console.log(
+          c.dim(`  Usage: ${getCommandName()} movie <id|title> [--json] [--domain=cz|sk]`)
+        );
         process.exit(1);
       }
       const json = args.includes('--json');
+      const domainArg = args.find((a) => a.startsWith('--domain='));
+      const domain = domainArg ? (domainArg.split('=')[1] as 'cz' | 'sk') : 'cz';
       try {
         const { runMovieLookup } = await import('./bin/lookup-movie');
         const numericId = /^\d+$/.test(input) ? Number(input) : null;
         if (numericId !== null) {
-          await runMovieLookup(numericId, json);
+          await runMovieLookup(numericId, json, domain);
         } else {
           const { csfd } = await import('.');
-          const results = await csfd.search(input);
+          const results = await csfd.search(input, { domain });
           const first = results.movies[0] ?? results.tvSeries[0];
           if (!first) {
             console.error(err(`No movies found for "${input}".`));
             process.exit(1);
           }
           console.log(c.dim(`  → ${first.title}${first.year ? ` (${first.year})` : ''}`));
-          await runMovieLookup(first.id, json);
+          await runMovieLookup(first.id, json, domain);
         }
       } catch (error) {
         console.error(err('Failed to fetch movie:'), error);

@@ -29,7 +29,7 @@ import {
   getSeriesAndSeasonTitle
 } from '../helpers/movie.helper';
 import { CSFDOptions } from '../types';
-import { LIB_PREFIX, movieUrl } from '../vars';
+import { getBaseUrl, LIB_PREFIX, movieUrl } from '../vars';
 
 export class MovieScraper {
   public async movie(movieId: number, options?: CSFDOptions): Promise<CSFDMovie> {
@@ -37,7 +37,7 @@ export class MovieScraper {
     if (isNaN(id)) {
       throw new Error('node-csfd-api: movieId must be a valid number');
     }
-    const url = movieUrl(id, { language: options?.language });
+    const url = movieUrl(id, { language: options?.language, domain: options?.domain });
     const response = await fetchPage(url, { ...options?.request });
 
     const movieHtml = parse(response);
@@ -52,7 +52,15 @@ export class MovieScraper {
     } catch (e) {
       console.error(LIB_PREFIX + ' Error parsing JSON-LD', e);
     }
-    return this.buildMovie(+movieId, movieHtml, movieNode as HTMLElement, asideNode as HTMLElement, pageClasses, jsonLd, options);
+    return this.buildMovie(
+      +movieId,
+      movieHtml,
+      movieNode as HTMLElement,
+      asideNode as HTMLElement,
+      pageClasses,
+      jsonLd,
+      options
+    );
   }
 
   private buildMovie(
@@ -69,6 +77,8 @@ export class MovieScraper {
       type === 'season' ? getSeriesAndSeasonTitle(el) : {};
     const seasonOrEpisodeListType = detectSeasonOrEpisodeListType(movieHtml);
 
+    const baseUrl = getBaseUrl(options?.domain, options?.language);
+
     const title = type === 'season' && seriesName ? seriesName : getMovieTitle(el);
     return {
       id: movieId,
@@ -78,7 +88,7 @@ export class MovieScraper {
       descriptions: getMovieDescriptions(el),
       genres: getMovieGenres(el),
       type,
-      url: movieUrl(movieId, { language: options?.language }),
+      url: movieUrl(movieId, { language: options?.language, domain: options?.domain }),
       origins: getMovieOrigins(el),
       colorRating: getMovieColorRating(pageClasses),
       rating: getMovieRating(asideEl),
@@ -87,15 +97,18 @@ export class MovieScraper {
       poster: getMoviePoster(el),
       photo: getMovieRandomPhoto(el),
       trivia: getMovieTrivia(el),
-      creators: getMovieCreators(el, options),
+      creators: getMovieCreators(el, options, baseUrl),
       vod: getMovieVods(el),
       tags: getMovieTags(asideEl),
       premieres: getMoviePremieres(asideEl),
-      related: getMovieBoxMovies(asideEl, 'Související'),
-      similar: getMovieBoxMovies(asideEl, 'Podobné'),
-      seasons: seasonOrEpisodeListType === 'seasons' ? getSeasonsOrEpisodes(movieHtml) : null,
-      episodes: seasonOrEpisodeListType === 'episodes' ? getSeasonsOrEpisodes(movieHtml) : null,
-      parent: type === 'season' || type === 'episode' ? getSeasonOrEpisodeParent(el) : null,
+      related: getMovieBoxMovies(asideEl, 'Související', baseUrl),
+      similar: getMovieBoxMovies(asideEl, 'Podobné', baseUrl),
+      seasons:
+        seasonOrEpisodeListType === 'seasons' ? getSeasonsOrEpisodes(movieHtml, baseUrl) : null,
+      episodes:
+        seasonOrEpisodeListType === 'episodes' ? getSeasonsOrEpisodes(movieHtml, baseUrl) : null,
+      parent:
+        type === 'season' || type === 'episode' ? getSeasonOrEpisodeParent(el, baseUrl) : null,
       episodeCode: type === 'episode' ? getEpisodeCode(el) : null,
       seasonName
     };

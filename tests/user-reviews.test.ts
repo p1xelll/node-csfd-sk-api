@@ -104,12 +104,15 @@ describe('Get date', () => {
 });
 
 describe('Get Url', () => {
+  const baseUrl = 'https://www.csfd.cz';
   test('First url', () => {
-    const url = getUserReviewUrl(reviews[0]);
-    expect(url).toEqual<string>('https://www.csfd.cz/film/1563295-gangy-z-birminghamu-nesmrtelny-muz/prehled/');
+    const url = getUserReviewUrl(reviews[0], baseUrl);
+    expect(url).toEqual<string>(
+      'https://www.csfd.cz/film/1563295-gangy-z-birminghamu-nesmrtelny-muz/prehled/'
+    );
   });
   test('Last url', () => {
-    const url = getUserReviewUrl(reviews[reviews.length - 1]);
+    const url = getUserReviewUrl(reviews[reviews.length - 1], baseUrl);
     expect(url).toEqual<string>('https://www.csfd.cz/film/1558529-neporazitelni/prehled/');
   });
 });

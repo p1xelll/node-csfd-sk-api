@@ -14,7 +14,7 @@ import {
   getUserRatingYear
 } from '../helpers/user-ratings.helper';
 import { CSFDOptions } from '../types';
-import { LIB_PREFIX, userRatingsUrl } from '../vars';
+import { getBaseUrl, LIB_PREFIX, userRatingsUrl } from '../vars';
 
 export class UserRatingsScraper {
   public async userRatings(
@@ -25,7 +25,8 @@ export class UserRatingsScraper {
     let allMovies: CSFDUserRatings[] = [];
     const pageToFetch = config?.page || 1;
     const url = userRatingsUrl(user, pageToFetch > 1 ? pageToFetch : undefined, {
-      language: options?.language
+      language: options?.language,
+      domain: options?.domain
     });
     const response = await fetchPage(url, { ...options?.request });
     const items = parse(response);
@@ -35,17 +36,22 @@ export class UserRatingsScraper {
     const pagesNode = items.querySelector('.pagination');
     const pages = +pagesNode?.childNodes[pagesNode.childNodes.length - 4].rawText || 1;
 
-    allMovies = this.getPage(config, movies);
+    const baseUrl = getBaseUrl(options?.domain, options?.language);
+
+    allMovies = this.getPage(config, movies, baseUrl);
 
     if (config?.allPages) {
       for (let i = 2; i <= pages; i++) {
         config.onProgress?.(i, pages);
-        const url = userRatingsUrl(user, i, { language: options?.language });
+        const url = userRatingsUrl(user, i, {
+          language: options?.language,
+          domain: options?.domain
+        });
         const response = await fetchPage(url, { ...options?.request });
 
         const items = parse(response);
         const movies = items.querySelectorAll('#snippet--ratings table tr');
-        allMovies = [...allMovies, ...this.getPage(config, movies)];
+        allMovies = [...allMovies, ...this.getPage(config, movies, baseUrl)];
 
         // Sleep
         if (config.allPagesDelay) {
@@ -58,11 +64,14 @@ export class UserRatingsScraper {
     return allMovies;
   }
 
-  private getPage(config: CSFDUserRatingConfig, movies: HTMLElement[]) {
+  private getPage(config: CSFDUserRatingConfig, movies: HTMLElement[], baseUrl: string) {
     const films: CSFDUserRatings[] = [];
     if (config) {
       if (config.includesOnly?.length && config.excludes?.length) {
-        console.warn(`${LIB_PREFIX} Both 'includesOnly' and 'excludes' were provided. 'includesOnly' takes precedence:`, config.includesOnly);
+        console.warn(
+          `${LIB_PREFIX} Both 'includesOnly' and 'excludes' were provided. 'includesOnly' takes precedence:`,
+          config.includesOnly
+        );
       }
     }
 
@@ -75,28 +84,28 @@ export class UserRatingsScraper {
       // Filtering includesOnly
       if (includesSet) {
         if (includesSet.has(type)) {
-          films.push(this.buildUserRatings(el, type));
+          films.push(this.buildUserRatings(el, type, baseUrl));
         }
         // Filter excludes
       } else if (excludesSet) {
         if (!excludesSet.has(type)) {
-          films.push(this.buildUserRatings(el, type));
+          films.push(this.buildUserRatings(el, type, baseUrl));
         }
       } else {
         // Without filtering
-        films.push(this.buildUserRatings(el, type));
+        films.push(this.buildUserRatings(el, type, baseUrl));
       }
     }
     return films;
   }
 
-  private buildUserRatings(el: HTMLElement, type: CSFDFilmTypes): CSFDUserRatings {
+  private buildUserRatings(el: HTMLElement, type: CSFDFilmTypes, baseUrl: string): CSFDUserRatings {
     return {
       id: getUserRatingId(el),
       title: getUserRatingTitle(el),
       year: getUserRatingYear(el),
       type,
-      url: getUserRatingUrl(el),
+      url: getUserRatingUrl(el, baseUrl),
       colorRating: getUserRatingColorRating(el) as CSFDColorRating,
       userDate: getUserRatingDate(el),
       userRating: getUserRating(el) as CSFDStars

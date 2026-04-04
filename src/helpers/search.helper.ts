@@ -4,7 +4,10 @@ import { CSFDMovieCreator } from '../dto/movie';
 import { CSFDColors } from '../dto/user-ratings';
 import { addProtocol, parseColor, parseFilmType, parseIdFromUrl } from './global.helper';
 
-type Creator = 'Režie:' | 'Hrají:';
+// Czech and Slovak labels for directors and actors in search results
+type CreatorCz = 'Režie:' | 'Hrají:';
+type CreatorSk = 'Réžia:' | 'Hrajú:';
+type Creator = CreatorCz | CreatorSk;
 
 export const getSearchType = (el: HTMLElement): CSFDFilmTypes => {
   const type = el.querySelectorAll('.film-title-info .info')[1];
@@ -44,24 +47,33 @@ export const getSearchOrigins = (el: HTMLElement): string[] => {
 
 export const parseSearchPeople = (
   el: HTMLElement,
-  type: 'directors' | 'actors'
+  type: 'directors' | 'actors',
+  baseUrl: string
 ): CSFDMovieCreator[] => {
-  let who: Creator;
-  if (type === 'directors') who = 'Režie:';
-  if (type === 'actors') who = 'Hrají:';
+  let whoCz: CreatorCz;
+  let whoSk: CreatorSk;
+  if (type === 'directors') {
+    whoCz = 'Režie:';
+    whoSk = 'Réžia:';
+  }
+  if (type === 'actors') {
+    whoCz = 'Hrají:';
+    whoSk = 'Hrajú:';
+  }
 
-  const peopleNode = Array.from(el && el.querySelectorAll('.article-content p')).find((el) =>
-    el.textContent.includes(who)
+  const peopleNode = Array.from(el && el.querySelectorAll('.article-content p')).find(
+    (el) => el.textContent.includes(whoCz) || el.textContent.includes(whoSk)
   );
 
   if (peopleNode) {
     const people = Array.from(peopleNode.querySelectorAll('a')) as unknown as HTMLElement[];
 
     return people.map((person) => {
+      const href = person.attributes.href;
       return {
-        id: parseIdFromUrl(person.attributes.href),
+        id: parseIdFromUrl(href),
         name: person.innerText.trim(),
-        url: `https://www.csfd.cz${person.attributes.href}`
+        url: href.startsWith('/') ? `${baseUrl}${href}` : href
       };
     });
   } else {

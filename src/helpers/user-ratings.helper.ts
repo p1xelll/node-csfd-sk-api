@@ -41,7 +41,7 @@ export const getUserRatingDate = (el: HTMLElement): string => {
   return parseDate(date);
 };
 
-export const getUserRatingUrl = (el: HTMLElement): string => {
+export const getUserRatingUrl = (el: HTMLElement, baseUrl: string): string => {
   const url = el.querySelector('td.name .film-title-name').attributes.href;
-  return `https://www.csfd.cz${url}`;
+  return url.startsWith('/') ? `${baseUrl}${url}` : url;
 };

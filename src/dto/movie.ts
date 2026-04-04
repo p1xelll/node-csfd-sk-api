@@ -200,7 +200,7 @@ export interface CSFDPremiere {
   company: string;
 }
 
-export type CSFDBoxContent = 'Související' | 'Podobné';
+export type CSFDBoxContent = 'Související' | 'Podobné' | 'Súvisiace';
 
 export interface CSFDSeriesChild {
   id: number;

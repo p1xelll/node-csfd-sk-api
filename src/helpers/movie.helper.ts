@@ -147,7 +147,10 @@ export const getMovieOrigins = (el: HTMLElement): string[] => {
   const originNode = el.querySelector('.origin');
   if (!originNode) return [];
   const text = originNode.childNodes[0]?.text || '';
-  return text.split('/').map(x => x.trim()).filter(x => x);
+  return text
+    .split('/')
+    .map((x) => x.trim())
+    .filter((x) => x);
 };
 
 export const getMovieColorRating = (bodyClasses: string[]): CSFDColorRating => {
@@ -276,33 +279,43 @@ export const getMovieDescriptions = (el: HTMLElement): string[] => {
     .map((movie) => movie.textContent?.trim().replace(/(\r\n|\n|\r|\t)/gm, ''));
 };
 
-const parseMoviePeople = (el: HTMLElement): CSFDMovieCreator[] => {
+const parseMoviePeople = (el: HTMLElement, baseUrl: string): CSFDMovieCreator[] => {
   const people = el.querySelectorAll('a');
   return (
     people
       // Filter out "more" links
       .filter((x) => x.classNames.length === 0)
       .map((person) => {
+        const href = person.attributes.href;
         return {
-          id: parseIdFromUrl(person.attributes.href),
+          id: parseIdFromUrl(href),
           name: person.innerText.trim(),
-          url: `https://www.csfd.cz${person.attributes.href}`
+          url: href.startsWith('/') ? `${baseUrl}${href}` : href
         };
       })
   );
 };
 
-// export const getMovieGroup = (el: HTMLElement, group: CSFDCreatorGroups | CSFDCreatorGroupsEnglish | CSFDCreatorGroupsSlovak): CSFDMovieCreator[] => {
-//   const creators = el.querySelectorAll('.creators h4');
-//   const element = creators.filter((elem) => elem.textContent.trim().includes(group))[0];
-//   if (element?.parentNode) {
-//     return parseMoviePeople(element.parentNode as HTMLElement);
-//   } else {
-//     return [];
-//   }
-// };
+export const getMovieGroup = (
+  el: HTMLElement,
+  group: CSFDCreatorGroups | CSFDCreatorGroupsEnglish | CSFDCreatorGroupsSlovak,
+  baseUrl?: string
+): CSFDMovieCreator[] => {
+  const creators = el.querySelectorAll('.creators h4');
+  const element = creators.find((elem) => elem.textContent.trim().includes(group as string));
+  const urlBase = baseUrl || 'https://www.csfd.cz';
+  if (element?.parentNode) {
+    return parseMoviePeople(element.parentNode as HTMLElement, urlBase);
+  } else {
+    return [];
+  }
+};
 
-export const getMovieCreators = (el: HTMLElement, options?: CSFDOptions): CSFDCreators => {
+export const getMovieCreators = (
+  el: HTMLElement,
+  options?: CSFDOptions,
+  baseUrl?: string
+): CSFDCreators => {
   const creators: CSFDCreators = {
     directors: [],
     writers: [],
@@ -338,12 +351,14 @@ export const getMovieCreators = (el: HTMLElement, options?: CSFDOptions): CSFDCr
     label: getLocalizedCreatorLabel(options?.language, key) as string
   }));
 
+  const urlBase = baseUrl || 'https://www.csfd.cz';
+
   for (const group of groups) {
     const text = group.textContent.trim();
     for (const { key, label } of localizedLabels) {
       if (text.includes(label)) {
         if (group.parentNode) {
-          creators[key] = parseMoviePeople(group.parentNode as HTMLElement);
+          creators[key] = parseMoviePeople(group.parentNode as HTMLElement, urlBase);
         }
         break;
       }
@@ -353,19 +368,24 @@ export const getMovieCreators = (el: HTMLElement, options?: CSFDOptions): CSFDCr
   return creators;
 };
 
-export const getSeasonsOrEpisodes = (el: HTMLElement): CSFDSeriesChild[] | null => {
+export const getSeasonsOrEpisodes = (
+  el: HTMLElement,
+  baseUrl?: string
+): CSFDSeriesChild[] | null => {
   const childrenList = el.querySelector('.film-episodes-list');
   if (!childrenList) return null;
 
   const childrenNodes = childrenList.querySelectorAll('.film-title-inline');
   if (!childrenNodes?.length) return [];
 
+  const urlBase = baseUrl || 'https://www.csfd.cz';
+
   return childrenNodes.map((season) => {
     const nameContainer = season.querySelector('.film-title-name');
     const infoContainer = season.querySelector('.info');
 
     const href = nameContainer?.getAttribute('href');
-    const url = href ? (href.startsWith('/') ? `https://www.csfd.cz${href}` : href) : null;
+    const url = href ? (href.startsWith('/') ? `${urlBase}${href}` : href) : null;
 
     return {
       id: parseLastIdFromUrl(href || ''),
@@ -394,12 +414,13 @@ export const detectSeasonOrEpisodeListType = (el: HTMLElement) => {
   const section = episodesList.closest('.updated-box') || episodesList.closest('section') || el;
   const headerText = section.querySelector('.updated-box-header h3')?.textContent?.trim() ?? '';
 
-  if (headerText.includes('Série')) return 'seasons';
-  if (headerText.includes('Epizody')) return 'episodes';
+  // Czech: Série / Epizody, Slovak: Séria / Epizódy
+  if (headerText.includes('Séri') || headerText.includes('Séria')) return 'seasons';
+  if (headerText.includes('Epizod') || headerText.includes('Epizódy')) return 'episodes';
   return null;
 };
 
-export const getSeasonOrEpisodeParent = (el: HTMLElement): CSFDParent | null => {
+export const getSeasonOrEpisodeParent = (el: HTMLElement, baseUrl?: string): CSFDParent | null => {
   let parents = el.querySelectorAll('.film-series-content h2 a');
   if (parents.length === 0) parents = el.querySelectorAll('.film-header-name h1 a');
   if (parents.length === 0) return null;
@@ -419,22 +440,13 @@ export const getSeasonOrEpisodeParent = (el: HTMLElement): CSFDParent | null => 
   return { series, season };
 };
 
-export const getMovieGroup = (
-  el: HTMLElement,
-  group: CSFDCreatorGroups | CSFDCreatorGroupsEnglish | CSFDCreatorGroupsSlovak
-): CSFDMovieCreator[] => {
-  const creators = el.querySelectorAll('.creators h4');
-  const element = creators.find((elem) => elem.textContent.trim().includes(group as string));
-  if (element?.parentNode) {
-    return parseMoviePeople(element.parentNode as HTMLElement);
-  } else {
-    return [];
-  }
-};
-
 export const getMovieType = (el: HTMLElement): CSFDFilmTypes => {
   const type = el.querySelector('.film-header-name .type');
-  const text = type?.innerText?.replace(/[{()}]/g, '').split('\n')[0].trim() || 'film';
+  const text =
+    type?.innerText
+      ?.replace(/[{()}]/g, '')
+      .split('\n')[0]
+      .trim() || 'film';
   return parseFilmType(text);
 };
 
@@ -452,29 +464,44 @@ export const getMovieVods = (el: HTMLElement | null): CSFDVod[] => {
   return vods.length ? vods : [];
 };
 
-// Get box content
-const getBoxContent = (el: HTMLElement, box: string): HTMLElement => {
+// Get box content - supports both Czech and Slovak labels
+const getBoxContent = (el: HTMLElement, boxCz: string, boxSk: string): HTMLElement => {
   const headers = el.querySelectorAll('section .updated-box-header');
-  return headers.find(
-    (header) =>
-      header.querySelector('h3')?.textContent.trim() === box ||
-      header.querySelector('h2')?.textContent.trim() === box
-  )?.parentNode;
+  return headers.find((header) => {
+    const text =
+      header.querySelector('h3')?.textContent.trim() ||
+      header.querySelector('h2')?.textContent.trim() ||
+      '';
+    return text === boxCz || text === boxSk;
+  })?.parentNode;
 };
 
 export const getMovieBoxMovies = (
   el: HTMLElement,
-  boxName: CSFDBoxContent
+  boxName: CSFDBoxContent,
+  baseUrl?: string
 ): CSFDMovieListItem[] => {
   const movieListItem: CSFDMovieListItem[] = [];
-  const box = getBoxContent(el, boxName);
+
+  // Map Czech label to Slovak equivalent
+  const boxMap: Record<string, { cz: string; sk: string }> = {
+    Související: { cz: 'Související', sk: 'Súvisiace' },
+    Podobné: { cz: 'Podobné', sk: 'Podobné' }
+  };
+
+  const labels = boxMap[boxName] || { cz: boxName, sk: boxName };
+  const box = getBoxContent(el, labels.cz, labels.sk);
   const movieTitleNodes = box?.querySelectorAll('.article-header .film-title-name');
+
+  const urlBase = baseUrl || 'https://www.csfd.cz';
+
   if (movieTitleNodes?.length) {
     for (const item of movieTitleNodes) {
+      const href = item.attributes.href;
       movieListItem.push({
-        id: parseIdFromUrl(item.attributes.href),
+        id: parseIdFromUrl(href),
         title: item.textContent.trim(),
-        url: `https://www.csfd.cz${item.attributes.href}`
+        url: href.startsWith('/') ? `${urlBase}${href}` : href
       });
     }
   }

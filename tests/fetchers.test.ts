@@ -346,12 +346,14 @@ describe('Live: Creator page', () => {
     expect(creator.films.length).toBeGreaterThan(0);
   });
   test('Filmography: Hej-rup!', () => {
-    expect(creator.films.find((film) => film.title === 'Hej-rup!')).toEqual<CSFDCreatorScreening>({
+    const film = creator.films.find((f) => f.title === 'Hej-rup!');
+    expect(film).toMatchObject<CSFDCreatorScreening>({
       id: 3106,
       title: 'Hej-rup!',
       year: 1934,
       colorRating: 'good'
     });
+    expect(film?.url).toContain('https://www.csfd.cz/film/3106');
   });
   test('Biography', () => {
     expect(creator.bio).toContain('Jan Werich se narodil');

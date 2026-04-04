@@ -46,8 +46,8 @@ jobs:
           # Check if build branch exists
           if git show-ref --verify --quiet refs/remotes/origin/build; then
             git checkout build
-            # Reset to main to get latest files (except dist)
-            git checkout main -- .gitignore
+            # Reset to master to get latest files (except dist)
+            git checkout master -- .gitignore
             # Remove /dist from gitignore temporarily
             sed -i '/^\/dist$/d' .gitignore
           else
@@ -57,10 +57,10 @@ jobs:
             sed -i '/^\/dist$/d' .gitignore
             # Remove all files except dist
             git rm -rf .
-            git checkout main -- dist/
-            git checkout main -- package.json
-            git checkout main -- README.md
-            git checkout main -- LICENSE
+            git checkout master -- dist/
+            git checkout master -- package.json
+            git checkout master -- README.md
+            git checkout master -- LICENSE
           fi
 
       - name: 📋 Copy dist to build branch
@@ -86,7 +86,7 @@ jobs:
             exit 0
           fi
 
-          git commit -m "chore(build): update dist/ from main@$(git rev-parse --short main) [skip ci]"
+          git commit -m "chore(build): update dist/ from master@$(git rev-parse --short master) [skip ci]"
 
           # Force push to build branch (clean history)
           git push origin build --force

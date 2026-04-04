@@ -29,7 +29,7 @@
     "prerelease:beta": "npm version prerelease --preid=beta -m \"chore(update): prelease %s β\"",
     "release:patch": "git checkout master && npm version patch -m \"chore(update): patch release %s 🐛\"",
     "release:minor": "git checkout master && npm version minor -m \"chore(update): release %s 🚀\"",
-    "release:major": "git checkout master && npm version major -m \"chore(update): major release %s 💥\"",
+    "release:major": "git checkout master && npm version major -m \"chore(update): major release %s 💥\""
   },
   "publishConfig": {
     "access": "public",

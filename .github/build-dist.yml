@@ -1,0 +1,92 @@
+name: Build and Push dist/
+
+on:
+  push:
+    branches:
+      - main
+      - master
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Enable Corepack
+        run: corepack enable
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: 'yarn'
+
+      - name: Install dependencies
+        run: yarn install --immutable
+
+      - name: Build project
+        run: yarn build
+
+      - name: Checkout or create build branch
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          # Fetch all branches
+          git fetch origin
+
+          # Check if build branch exists
+          if git show-ref --verify --quiet refs/remotes/origin/build; then
+            git checkout build
+            # Reset to main to get latest files (except dist)
+            git checkout main -- .gitignore
+            # Remove /dist from gitignore temporarily
+            sed -i '/^\/dist$/d' .gitignore
+          else
+            # Create orphan branch
+            git checkout --orphan build
+            # Remove /dist from gitignore
+            sed -i '/^\/dist$/d' .gitignore
+            # Remove all files except dist
+            git rm -rf .
+            git checkout main -- dist/
+            git checkout main -- package.json
+            git checkout main -- README.md
+            git checkout main -- LICENSE
+          fi
+
+      - name: Copy dist to build branch
+        run: |
+          # Ensure dist is present
+          if [ ! -d "dist" ]; then
+            echo "❌ dist/ directory not found after build"
+            exit 1
+          fi
+
+          # Add dist files
+          git add dist/ -f
+          git add package.json
+          git add README.md
+          git add LICENSE
+          git add .gitignore
+
+      - name: Commit and push
+        run: |
+          # Check if there are changes to commit
+          if git diff --staged --quiet; then
+            echo "No changes in dist/, skipping commit"
+            exit 0
+          fi
+
+          git commit -m "chore(build): update dist/ from main@$(git rev-parse --short main) [skip ci]"
+
+          # Force push to build branch (clean history)
+          git push origin build --force

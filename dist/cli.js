@@ -143,7 +143,7 @@ async function main() {
 		}
 		case "--version":
 		case "-v":
-			console.log(c.bold("5.8.0"));
+			console.log(c.bold("5.8.1"));
 			break;
 		case "update":
 			await runUpdate();
@@ -236,15 +236,15 @@ async function checkForUpdateInBackground() {
 				} catch {}
 			}
 		} catch {}
-		if (!latestVersion || compareSemver("5.8.0", latestVersion) >= 0) return;
+		if (!latestVersion || compareSemver("5.8.1", latestVersion) >= 0) return;
 		console.log("");
 		console.log(c.dim("  " + "─".repeat(44)));
-		console.log(`  ${c.yellow(c.bold("↑ Update available:"))} ${c.dim("5.8.0")} → ${c.bold(c.green(latestVersion))}`);
+		console.log(`  ${c.yellow(c.bold("↑ Update available:"))} ${c.dim("5.8.1")} → ${c.bold(c.green(latestVersion))}`);
 		console.log(`  ${c.dim("Run")} ${c.cyan(getCommandName() + " update")} ${c.dim("for upgrade instructions.")}`);
 	} catch {}
 }
 async function runUpdate() {
-	console.log(c.dim("Current version: ") + c.bold("5.8.0"));
+	console.log(c.dim("Current version: ") + c.bold("5.8.1"));
 	console.log(c.dim("Checking for updates..."));
 	let latest;
 	try {
@@ -257,7 +257,7 @@ async function runUpdate() {
 		console.error(err("Could not determine latest version."));
 		process.exit(1);
 	}
-	const cmp = compareSemver("5.8.0", latest);
+	const cmp = compareSemver("5.8.1", latest);
 	if (cmp === 0) {
 		console.log(c.green("✔ Already up to date."));
 		return;
@@ -270,7 +270,7 @@ async function runUpdate() {
 }
 function printUsage() {
 	const cmd = getCommandName();
-	const header = c.bold(c.cyan("csfd")) + " " + c.dim(`v5.8.0`);
+	const header = c.bold(c.cyan("csfd")) + " " + c.dim(`v5.8.1`);
 	const usage = c.bold("Usage:") + `  ${c.cyan(cmd)} ${c.dim("<command> [options]")}`;
 	const section = (title) => c.bold(title);
 	const cmd_ = (name) => "  " + c.cyan(name);

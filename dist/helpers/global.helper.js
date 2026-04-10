@@ -4,8 +4,10 @@ const ISO8601_DURATION_REGEX = /(-)?P(?:([.,\d]+)Y)?(?:([.,\d]+)M)?(?:([.,\d]+)W
 const parseIdFromUrl = (url) => {
 	if (!url) return null;
 	const parts = url.split("/");
-	const idParts = parts.filter((p) => /^\d+-/.test(p));
-	if (idParts.length > 0) return +idParts[idParts.length - 1].split("-")[0] || null;
+	for (let i = parts.length - 1; i >= 0; i--) {
+		const p = parts[i];
+		if (/^\d+-/.test(p)) return +p.split("-")[0] || null;
+	}
 	return +parts[LANG_PREFIX_REGEX.test(parts[1]) ? 3 : 2]?.split("-")[0] || null;
 };
 const parseLastIdFromUrl = (url) => {
